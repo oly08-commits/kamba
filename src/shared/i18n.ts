@@ -1,0 +1,220 @@
+type Dictionary = Record<string, string>;
+
+export type langs = "en" | "pt";
+
+const translations = {
+  en: {
+    // General
+    welcome: "Welcome",
+    hello: "Hello",
+    home: "Home",
+    dashboard: "Dashboard",
+    settings: "Settings",
+    profile: "Profile",
+    account: "Account",
+    search: "Search",
+    notifications: "Notifications",
+    menu: "Menu",
+    newSold: "New Sold",
+    quickAccess: "Quick access",
+    newSale: "New sale",
+    newProduct: "New Product",
+    products: "Products",
+    customers: "Customers",
+    reports: "Reports",
+    summary: "Summary",
+    todaysSales: "Today's sales",
+    recentSales: "Recent sales",
+    viewAll: "View all",
+    noSalesYet: "No sales yet",
+    recentSalesDescription: "Your recent sales will appear here.",
+
+    // Actions
+    save: "Save",
+    cancel: "Cancel",
+    confirm: "Confirm",
+    delete: "Delete",
+    edit: "Edit",
+    create: "Create",
+    update: "Update",
+    add: "Add",
+    remove: "Remove",
+    close: "Close",
+    back: "Back",
+    next: "Next",
+    continue: "Continue",
+    submit: "Submit",
+    send: "Send",
+    loading: "Loading...",
+
+    // Authentication
+    login: "Login",
+    logout: "Logout",
+    register: "Register",
+    email: "Email",
+    password: "Password",
+    confirmPassword: "Confirm password",
+    forgotPassword: "Forgot password?",
+    rememberMe: "Remember me",
+    signIn: "Sign in",
+    signUp: "Sign up",
+
+    // User
+    name: "Name",
+    firstName: "First name",
+    lastName: "Last name",
+    username: "Username",
+    phone: "Phone",
+    address: "Address",
+
+    // Messages
+    success: "Success",
+    error: "Error",
+    warning: "Warning",
+    information: "Information",
+    noResults: "No results found.",
+    somethingWentWrong: "Something went wrong.",
+    savedSuccessfully: "Saved successfully.",
+    deletedSuccessfully: "Deleted successfully.",
+
+    // Status
+    active: "Active",
+    inactive: "Inactive",
+    pending: "Pending",
+    completed: "Completed",
+    cancelled: "Cancelled",
+
+    // Time
+    today: "Today",
+    yesterday: "Yesterday",
+    tomorrow: "Tomorrow",
+    date: "Date",
+    time: "Time",
+
+    // Settings
+    language: "Language",
+    theme: "Theme",
+    lightMode: "Light mode",
+    darkMode: "Dark mode",
+    notificationsEnabled: "Notifications enabled",
+    general: "General",
+    accountSection: "Account",
+    informationSection: "Information",
+    about: "About",
+    terms: "Terms and conditions",
+    privacy: "Privacy policy",
+    customizeExperience: "Customize your experience.",
+    version: "Version",
+  },
+
+  pt: {
+    welcome: "Bem-vindo",
+    hello: "Olá",
+    home: "Início",
+    dashboard: "Painel",
+    settings: "Definições",
+    profile: "Perfil",
+    account: "Conta",
+    search: "Pesquisar",
+    notifications: "Notificações",
+    menu: "Menu",
+    newSold: "Nova venda",
+    quickAccess: "Acesso rápido",
+    newSale: "Nova venda",
+    newProduct: "Novo Produto",
+    products: "Produtos",
+    customers: "Clientes",
+    reports: "Relatórios",
+    summary: "Resumo",
+    todaysSales: "Vendas hoje",
+    recentSales: "Vendas recentes",
+    viewAll: "Ver todas",
+    noSalesYet: "Nenhuma venda ainda",
+    recentSalesDescription: "As suas vendas recentes aparecerão aqui.",
+
+    save: "Guardar",
+    cancel: "Cancelar",
+    confirm: "Confirmar",
+    delete: "Eliminar",
+    edit: "Editar",
+    create: "Criar",
+    update: "Atualizar",
+    add: "Adicionar",
+    remove: "Remover",
+    close: "Fechar",
+    back: "Voltar",
+    next: "Seguinte",
+    continue: "Continuar",
+    submit: "Enviar",
+    send: "Enviar",
+    loading: "A carregar...",
+
+    login: "Iniciar sessão",
+    logout: "Terminar sessão",
+    register: "Registar",
+    email: "E-mail",
+    password: "Palavra-passe",
+    confirmPassword: "Confirmar palavra-passe",
+    forgotPassword: "Esqueceu-se da palavra-passe?",
+    rememberMe: "Lembrar-me",
+    signIn: "Entrar",
+    signUp: "Criar conta",
+
+    name: "Nome",
+    firstName: "Nome próprio",
+    lastName: "Apelido",
+    username: "Nome de utilizador",
+    phone: "Telefone",
+    address: "Morada",
+
+    success: "Sucesso",
+    error: "Erro",
+    warning: "Aviso",
+    information: "Informação",
+    noResults: "Nenhum resultado encontrado.",
+    somethingWentWrong: "Algo correu mal.",
+    savedSuccessfully: "Guardado com sucesso.",
+    deletedSuccessfully: "Eliminado com sucesso.",
+
+    active: "Ativo",
+    inactive: "Inativo",
+    pending: "Pendente",
+    completed: "Concluído",
+    cancelled: "Cancelado",
+
+    today: "Hoje",
+    yesterday: "Ontem",
+    tomorrow: "Amanhã",
+    date: "Data",
+    time: "Hora",
+
+    language: "Idioma",
+    theme: "Tema",
+    lightMode: "Modo claro",
+    darkMode: "Modo escuro",
+    notificationsEnabled: "Notificações ativadas",
+    general: "Geral",
+    accountSection: "Conta",
+    informationSection: "Informação",
+    about: "Sobre",
+    terms: "Termos e condições",
+    privacy: "Política de privacidade",
+    customizeExperience: "Personalize a sua experiência.",
+    version: "Versão",
+  },
+} satisfies Record<langs, Dictionary>;
+
+/**
+ * Todas as chaves disponíveis nas traduções.
+ */
+export type TranslationKey = keyof typeof translations.en;
+
+/**
+ * Função de tradução tipada.
+ */
+export function t(key: TranslationKey, lang: "en" | "pt"): string {
+  const dictionary = translations[lang] || translations.en;
+  return dictionary[key] || translations.en[key] || key;
+}
+
+export default translations;
