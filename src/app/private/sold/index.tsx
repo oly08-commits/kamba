@@ -1,6 +1,3 @@
-import { SoldScreen } from "@/features/sold/screens";
-import React from "react";
+import SoldScreen from "@/features/sold/screens";
 
-export default function Page() {
-  return <SoldScreen />;
-}
+export default SoldScreen;

@@ -1,106 +1,321 @@
 import { useLanguageStore } from "@/store/i18n.store";
 import { CameraView, useCameraPermissions } from "expo-camera";
+import { useSQLiteContext } from "expo-sqlite";
 import React, { useState } from "react";
 import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-interface Product {
-  id: string;
-  barcode: string;
+import { ProductRepository } from "@/features/produtcs/repositories/productRepository";
+import { SaleRepository } from "../repositories/saleRepository";
+
+interface CartProduct {
+  id: number;
+  barcode: string | null;
   name: string;
   price: number;
   quantity: number;
 }
 
-export function SoldScreen() {
+export default function SoldScreen() {
   const { lang } = useLanguageStore();
+
+  const db = useSQLiteContext();
+
+  const productRepository = new ProductRepository(db);
+  const saleRepository = new SaleRepository(db);
 
   const [permission, requestPermission] = useCameraPermissions();
 
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<CartProduct[]>([]);
 
   const [scanning, setScanning] = useState(true);
+
+  const [finishingSale, setFinishingSale] = useState(false);
 
   const total = products.reduce(
     (sum, product) => sum + product.price * product.quantity,
     0,
   );
 
-  const handleBarcodeScanned = ({
+  // ==========================================
+  // SCANNER
+  // ==========================================
+
+  const handleBarcodeScanned = async ({
     data,
     type,
   }: {
     data: string;
     type: string;
   }) => {
-    if (!scanning) return;
+    if (!scanning || finishingSale) {
+      return;
+    }
 
-    // Evita múltiplas leituras consecutivas
     setScanning(false);
 
-    console.log("Código:", data);
-    console.log("Tipo:", type);
+    try {
+      console.log("Código:", data);
+      console.log("Tipo:", type);
 
-    /*
-     * Aqui você pode consultar sua API:
-     *
-     * const product = await getProductByBarcode(data);
-     *
-     * Por enquanto vamos simular um produto.
-     */
+      const product = await productRepository.findByBarcode(data);
 
-    const newProduct: Product = {
-      id: Date.now().toString(),
-      barcode: data,
-      name: "Produto",
-      price: 2500,
-      quantity: 1,
-    };
+      // ========================================
+      // PRODUTO NÃO ENCONTRADO
+      // ========================================
 
-    setProducts((current) => {
-      const existing = current.find((product) => product.barcode === data);
+      if (!product) {
+        Alert.alert(
+          lang === "pt" ? "Produto não encontrado" : "Product not found",
 
-      if (existing) {
-        return current.map((product) =>
-          product.barcode === data
-            ? {
-                ...product,
-                quantity: product.quantity + 1,
-              }
-            : product,
+          lang === "pt"
+            ? `Nenhum produto foi encontrado para o código:\n${data}`
+            : `No product was found for barcode:\n${data}`,
+
+          [
+            {
+              text: "OK",
+              onPress: () => {
+                setTimeout(() => {
+                  setScanning(true);
+                }, 500);
+              },
+            },
+          ],
         );
+
+        return;
       }
 
-      return [...current, newProduct];
-    });
+      // ========================================
+      // PRODUTO INATIVO
+      // ========================================
 
-    Alert.alert(
-      lang === "pt" ? "Produto adicionado" : "Product added",
-      `${data}`,
-      [
-        {
-          text: "OK",
-          onPress: () => {
-            setTimeout(() => {
-              setScanning(true);
-            }, 500);
+      if (product.ativo !== 1) {
+        Alert.alert(
+          lang === "pt" ? "Produto indisponível" : "Product unavailable",
+
+          lang === "pt"
+            ? `${product.nome} está desativado.`
+            : `${product.nome} is inactive.`,
+
+          [
+            {
+              text: "OK",
+              onPress: () => {
+                setTimeout(() => {
+                  setScanning(true);
+                }, 500);
+              },
+            },
+          ],
+        );
+
+        return;
+      }
+
+      // ========================================
+      // SEM ESTOQUE
+      // ========================================
+
+      if (product.estoque <= 0) {
+        Alert.alert(
+          lang === "pt" ? "Sem estoque" : "Out of stock",
+
+          lang === "pt"
+            ? `${product.nome} não possui estoque disponível.`
+            : `${product.nome} is out of stock.`,
+
+          [
+            {
+              text: "OK",
+              onPress: () => {
+                setTimeout(() => {
+                  setScanning(true);
+                }, 500);
+              },
+            },
+          ],
+        );
+
+        return;
+      }
+
+      // ========================================
+      // ADICIONAR AO CARRINHO
+      // ========================================
+
+      setProducts((current) => {
+        const existing = current.find((item) => item.id === product.id);
+
+        // Produto já está no carrinho
+        if (existing) {
+          // Não permitir quantidade acima do estoque
+          if (existing.quantity >= product.estoque) {
+            return current;
+          }
+
+          return current.map((item) =>
+            item.id === product.id
+              ? {
+                  ...item,
+                  quantity: item.quantity + 1,
+                }
+              : item,
+          );
+        }
+
+        // Produto novo
+        return [
+          ...current,
+          {
+            id: product.id,
+            barcode: product.codigo_barras,
+            name: product.nome,
+            price: product.preco,
+            quantity: 1,
           },
-        },
-      ],
-    );
+        ];
+      });
+
+      Alert.alert(
+        lang === "pt" ? "Produto adicionado" : "Product added",
+
+        `${product.nome}\n${product.preco.toFixed(2)} Kz`,
+
+        [
+          {
+            text: "OK",
+            onPress: () => {
+              setTimeout(() => {
+                setScanning(true);
+              }, 500);
+            },
+          },
+        ],
+      );
+    } catch (error) {
+      console.error("Erro ao procurar produto:", error);
+
+      Alert.alert(
+        lang === "pt" ? "Erro" : "Error",
+
+        lang === "pt"
+          ? "Não foi possível consultar o produto."
+          : "Could not find the product.",
+
+        [
+          {
+            text: "OK",
+            onPress: () => {
+              setTimeout(() => {
+                setScanning(true);
+              }, 500);
+            },
+          },
+        ],
+      );
+    }
   };
 
-  const removeProduct = (id: string) => {
+  // ==========================================
+  // REMOVER PRODUTO
+  // ==========================================
+
+  const removeProduct = (id: number) => {
     setProducts((current) => current.filter((product) => product.id !== id));
   };
+
+  // ==========================================
+  // LIMPAR CARRINHO
+  // ==========================================
 
   const clearCart = () => {
     setProducts([]);
   };
 
+  // ==========================================
+  // FINALIZAR VENDA
+  // ==========================================
+
+  const handleFinishSale = async () => {
+    if (products.length === 0 || finishingSale) {
+      return;
+    }
+
+    try {
+      setFinishingSale(true);
+
+      // Para evitar que o scanner continue
+      setScanning(false);
+
+      const result = await saleRepository.createSale({
+        items: products.map((product) => ({
+          productId: product.id,
+          quantity: product.quantity,
+          price: product.price,
+        })),
+
+        desconto: 0,
+
+        pagamento: {
+          metodo: "dinheiro",
+          valor: total,
+        },
+      });
+
+      Alert.alert(
+        lang === "pt" ? "Venda concluída" : "Sale completed",
+
+        lang === "pt"
+          ? `Venda #${result.saleId}\nTotal: ${result.total.toFixed(2)} Kz`
+          : `Sale #${result.saleId}\nTotal: ${result.total.toFixed(2)} Kz`,
+
+        [
+          {
+            text: "OK",
+            onPress: () => {
+              setProducts([]);
+              setScanning(true);
+            },
+          },
+        ],
+      );
+    } catch (error) {
+      console.error("Erro ao finalizar venda:", error);
+
+      Alert.alert(
+        lang === "pt"
+          ? "Não foi possível finalizar"
+          : "Could not complete sale",
+
+        error instanceof Error
+          ? error.message
+          : lang === "pt"
+            ? "Ocorreu um erro ao finalizar a venda."
+            : "An error occurred while completing the sale.",
+
+        [
+          {
+            text: "OK",
+            onPress: () => {
+              setScanning(true);
+            },
+          },
+        ],
+      );
+    } finally {
+      setFinishingSale(false);
+    }
+  };
+
+  // ==========================================
+  // PERMISSÃO
+  // ==========================================
+
   if (!permission) {
     return (
-      <SafeAreaView className="flex-1 bg-background items-center justify-center">
+      <SafeAreaView className="flex-1 items-center justify-center bg-background">
         <Text className="text-textSecondary">
           {lang === "pt"
             ? "A verificar permissões..."
@@ -112,7 +327,7 @@ export function SoldScreen() {
 
   if (!permission.granted) {
     return (
-      <SafeAreaView className="flex-1 bg-background items-center justify-center px-6">
+      <SafeAreaView className="flex-1 items-center justify-center bg-background px-6">
         <View className="h-20 w-20 items-center justify-center rounded-3xl bg-green-50">
           <Text className="text-4xl">📷</Text>
         </View>
@@ -139,8 +354,14 @@ export function SoldScreen() {
     );
   }
 
+  // ==========================================
+  // TELA
+  // ==========================================
+
   return (
     <SafeAreaView className="flex-1 bg-background">
+      {/* CAMERA */}
+
       <View className="overflow-hidden rounded-b-3xl bg-primary">
         <View className="h-52">
           <CameraView
@@ -167,11 +388,12 @@ export function SoldScreen() {
         </View>
       </View>
 
+      {/* PRODUTOS */}
+
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerClassName="pb-8"
       >
-        {/* Products */}
         <View className="mt-7 px-5">
           <View className="mb-3 flex-row items-center justify-between">
             <Text className="text-lg font-bold text-text">
@@ -214,7 +436,7 @@ export function SoldScreen() {
                       </Text>
 
                       <Text className="mt-1 text-xs text-textMuted">
-                        {product.barcode}
+                        {product.barcode ?? "-"}
                       </Text>
 
                       <Text className="mt-1 text-sm text-textSecondary">
@@ -247,7 +469,9 @@ export function SoldScreen() {
           )}
         </View>
       </ScrollView>
-      {/* Total */}
+
+      {/* TOTAL */}
+
       <View className="mx-5 mt-6 rounded-3xl bg-primary p-5">
         <View className="flex-row items-center justify-between">
           <View>
@@ -263,6 +487,7 @@ export function SoldScreen() {
           {products.length > 0 && (
             <Pressable
               onPress={clearCart}
+              disabled={finishingSale}
               className="rounded-xl bg-white/10 px-4 py-3 active:bg-white/20"
             >
               <Text className="font-semibold text-white">
@@ -272,18 +497,31 @@ export function SoldScreen() {
           )}
         </View>
 
+        {/* FINALIZAR */}
+
         <Pressable
-          disabled={products.length === 0}
+          disabled={products.length === 0 || finishingSale}
+          onPress={handleFinishSale}
           className={`mt-5 items-center rounded-2xl py-4 ${
-            products.length > 0 ? "bg-secondary" : "bg-white/20"
+            products.length > 0 && !finishingSale
+              ? "bg-secondary"
+              : "bg-white/20"
           }`}
         >
           <Text
             className={`font-bold ${
-              products.length > 0 ? "text-primary" : "text-white/50"
+              products.length > 0 && !finishingSale
+                ? "text-primary"
+                : "text-white/50"
             }`}
           >
-            {lang === "pt" ? "Finalizar venda" : "Complete sale"}
+            {finishingSale
+              ? lang === "pt"
+                ? "Finalizando..."
+                : "Completing..."
+              : lang === "pt"
+                ? "Finalizar venda"
+                : "Complete sale"}
           </Text>
         </Pressable>
       </View>

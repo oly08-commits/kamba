@@ -1,206 +1,219 @@
 import { Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
-import React, { useMemo, useState } from "react";
-import { FlatList, Pressable, Text, TextInput, View } from "react-native";
+import { router, useFocusEffect } from "expo-router";
+import React, { useCallback, useMemo, useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { t } from "@/shared/i18n";
 import { useLanguageStore } from "@/store/i18n.store";
+import { useSQLiteContext } from "expo-sqlite";
 import { StatusBar } from "expo-status-bar";
 
-interface Product {
-  id: string;
-  name: string;
-  barcode: string;
-  price: number;
-  stock: number;
-}
-
-const products: Product[] = [
-  {
-    id: "1",
-    name: "Água Mineral",
-    barcode: "5601234567890",
-    price: 500,
-    stock: 24,
-  },
-  {
-    id: "2",
-    name: "Refrigerante",
-    barcode: "5609876543210",
-    price: 1000,
-    stock: 12,
-  },
-  {
-    id: "3",
-    name: "Sumo de Laranja",
-    barcode: "5601112223334",
-    price: 1500,
-    stock: 8,
-  },
-  {
-    id: "4",
-    name: "Bolachas",
-    barcode: "5605556667778",
-    price: 750,
-    stock: 3,
-  },
-];
+import { EmptyState } from "../components/EmptyState";
+import { Header } from "../components/header";
+import { ProductItem } from "../components/product-item";
+import { ProductRepository } from "../repositories/productRepository";
+import { Product } from "../types/product";
 
 export default function ProductsScreen() {
   const { lang } = useLanguageStore();
 
+  const db = useSQLiteContext();
+
+  const productRepository = useMemo(() => new ProductRepository(db), [db]);
+
   const [search, setSearch] = useState("");
+  const [products, setProducts] = useState<Product[]>([]);
+
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const [error, setError] = useState<string | null>(null);
+
+  const loadProducts = useCallback(
+    async (isRefresh = false) => {
+      try {
+        if (isRefresh) {
+          setRefreshing(true);
+        } else {
+          setLoading(true);
+        }
+
+        setError(null);
+
+        const result = await productRepository.findAll();
+
+        setProducts(result);
+      } catch (error) {
+        console.error("Erro ao carregar produtos:", error);
+
+        setError(
+          lang === "pt"
+            ? "Não foi possível carregar os produtos."
+            : "Could not load products.",
+        );
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [productRepository, lang],
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      loadProducts();
+    }, [loadProducts]),
+  );
 
   const filteredProducts = useMemo(() => {
-    const query = search.toLowerCase().trim();
+    const query = search.trim().toLowerCase();
 
     if (!query) {
       return products;
     }
 
+    return products.filter((product) => {
+      const name = product.nome?.toLowerCase() ?? "";
+
+      const barcode = product.codigo_barras?.toLowerCase() ?? "";
+
+      return name.includes(query) || barcode.includes(query);
+    });
+  }, [products, search]);
+
+  const lowStockCount = useMemo(() => {
     return products.filter(
-      (product) =>
-        product.name.toLowerCase().includes(query) ||
-        product.barcode.includes(query),
-    );
-  }, [search]);
+      (product) => product.estoque <= product.estoque_minimo,
+    ).length;
+  }, [products]);
+
+  const handleProductPress = (product: Product) => {
+    router.push(`/private/produtcs/${product.id}`);
+  };
 
   const renderProduct = ({ item }: { item: Product }) => {
-    const lowStock = item.stock <= 5;
-
     return (
-      <Pressable
-        onPress={() => console.log("Produto:", item.id)}
-        className="mb-3 rounded-2xl border border-border bg-surface p-4 active:opacity-80"
-      >
-        <View className="flex-row items-center">
-          {/* Icon */}
-          <View className="mr-4 h-14 w-14 items-center justify-center rounded-2xl bg-green-50">
-            <Feather name="package" size={25} color="#063023" />
-          </View>
-
-          {/* Information */}
-          <View className="flex-1">
-            <Text numberOfLines={1} className="text-base font-bold text-text">
-              {item.name}
-            </Text>
-
-            <Text className="mt-1 text-xs text-textMuted">{item.barcode}</Text>
-
-            <Text className="mt-2 text-base font-bold text-primary">
-              {item.price.toFixed(2)} Kz
-            </Text>
-          </View>
-
-          {/* Stock */}
-          <View className="items-end">
-            <View
-              className={`rounded-full px-3 py-1 ${
-                lowStock ? "bg-red-50" : "bg-green-50"
-              }`}
-            >
-              <Text
-                className={`text-xs font-semibold ${
-                  lowStock ? "text-error" : "text-success"
-                }`}
-              >
-                {item.stock} {lang === "pt" ? "em stock" : "in stock"}
-              </Text>
-            </View>
-
-            <Feather
-              name="chevron-right"
-              size={20}
-              color="#8A948F"
-              style={{ marginTop: 10 }}
-            />
-          </View>
-        </View>
-      </Pressable>
+      <ProductItem
+        handleProductPress={(item) => handleProductPress(item)}
+        lang={lang}
+        item={item}
+      />
     );
   };
 
-  return (
-    <SafeAreaView className="flex-1 bg-background">
-      <StatusBar style={"dark"} />
+  const ListHeader = () => {
+    if (products.length === 0) {
+      return null;
+    }
 
-      {/* Header */}
-      <View className="px-5 pt-5">
-        <View className="flex-row items-center justify-between">
-          <View>
-            <Text className="text-3xl font-bold text-primary">
-              {t("products", lang)}
-            </Text>
+    return (
+      <View className="mb-3 flex-row items-center justify-between">
+        <Text className="text-sm font-semibold text-textSecondary">
+          {filteredProducts.length}{" "}
+          {lang === "pt" ? "produto(s)" : "product(s)"}
+        </Text>
 
-            <Text className="mt-1 text-sm text-textSecondary">
-              {products.length}{" "}
-              {lang === "pt" ? "produtos cadastrados" : "registered products"}
+        {lowStockCount > 0 && (
+          <View className="flex-row items-center">
+            <View className="mr-1.5 h-2 w-2 rounded-full bg-error" />
+
+            <Text className="text-xs font-semibold text-error">
+              {lowStockCount} {lang === "pt" ? "stock baixo" : "low stock"}
             </Text>
           </View>
+        )}
+      </View>
+    );
+  };
 
-          {/* Add */}
+  if (error && !refreshing) {
+    return (
+      <SafeAreaView className="flex-1 bg-background">
+        <StatusBar style="light" />
+
+        <Header
+          lang={lang}
+          productsCount={products.length}
+          search={search}
+          setSearch={setSearch}
+        />
+
+        <View className="flex-1 items-center justify-center px-6">
+          <View className="h-16 w-16 items-center justify-center rounded-2xl bg-red-50">
+            <Feather name="alert-circle" size={30} color="#DC2626" />
+          </View>
+
+          <Text className="mt-4 text-center text-lg font-bold text-text">
+            {lang === "pt" ? "Ocorreu um erro" : "Something went wrong"}
+          </Text>
+
+          <Text className="mt-2 text-center text-sm text-textSecondary">
+            {error}
+          </Text>
+
           <Pressable
-            onPress={() => router.push("/private/produtcs/create")}
-            className="h-12 w-12 items-center justify-center rounded-2xl bg-primary active:opacity-80"
+            onPress={() => loadProducts()}
+            className="mt-6 rounded-2xl bg-primary px-6 py-3"
           >
-            <Feather name="plus" size={24} color="#F2F2F2" />
+            <Text className="font-bold text-white">
+              {lang === "pt" ? "Tentar novamente" : "Try again"}
+            </Text>
           </Pressable>
         </View>
+      </SafeAreaView>
+    );
+  }
 
-        {/* Search */}
-        <View className="mt-6 flex-row items-center rounded-2xl border border-border bg-surface px-4">
-          <Feather name="search" size={20} color="#8A948F" />
+  return (
+    <SafeAreaView className="flex-1 bg-background">
+      <StatusBar style="dark" />
 
-          <TextInput
-            value={search}
-            onChangeText={setSearch}
-            placeholder={
-              lang === "pt" ? "Pesquisar produto..." : "Search product..."
-            }
-            placeholderTextColor="#8A948F"
-            className="ml-3 flex-1 py-4 text-base text-text"
-          />
-
-          {search.length > 0 && (
-            <Pressable onPress={() => setSearch("")}>
-              <Feather name="x-circle" size={20} color="#8A948F" />
-            </Pressable>
-          )}
-        </View>
-      </View>
-
-      {/* Products */}
-      <FlatList
-        data={filteredProducts}
-        keyExtractor={(item) => item.id}
-        renderItem={renderProduct}
-        showsVerticalScrollIndicator={false}
-        contentContainerClassName="px-5 pt-6 pb-10"
-        ListEmptyComponent={
-          <View className="items-center rounded-2xl border border-dashed border-border bg-surface px-6 py-12">
-            <View className="h-16 w-16 items-center justify-center rounded-2xl bg-green-50">
-              <Feather name="package" size={30} color="#063023" />
-            </View>
-
-            <Text className="mt-4 text-lg font-bold text-text">
-              {lang === "pt"
-                ? "Nenhum produto encontrado"
-                : "No products found"}
-            </Text>
-
-            <Text className="mt-2 text-center text-sm text-textSecondary">
-              {search
-                ? lang === "pt"
-                  ? "Tente pesquisar por outro nome ou código."
-                  : "Try another name or barcode."
-                : lang === "pt"
-                  ? "Adicione o seu primeiro produto."
-                  : "Add your first product."}
-            </Text>
-          </View>
-        }
+      <Header
+        lang={lang}
+        productsCount={products.length}
+        search={search}
+        setSearch={setSearch}
       />
+
+      {loading ? (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#063023" />
+
+          <Text className="mt-3 text-sm text-textSecondary">
+            {lang === "pt" ? "A carregar produtos..." : "Loading products..."}
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          data={filteredProducts}
+          keyExtractor={(item) => String(item.id)}
+          renderItem={renderProduct}
+          showsVerticalScrollIndicator={false}
+          contentContainerClassName="px-5 pt-5 pb-10"
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => loadProducts(true)}
+              tintColor="#063023"
+            />
+          }
+          ListHeaderComponent={<ListHeader />}
+          ListEmptyComponent={
+            <EmptyState
+              lang={lang}
+              search={search}
+              onAdd={() => router.push("/private/produtcs/create")}
+            />
+          }
+        />
+      )}
     </SafeAreaView>
   );
 }

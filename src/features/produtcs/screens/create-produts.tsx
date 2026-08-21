@@ -1,56 +1,98 @@
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    ScrollView,
-    Text,
-    TextInput,
-    View,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Input } from "@/shared/components/input";
 import { useLanguageStore } from "@/store/i18n.store";
+import { useSQLiteContext } from "expo-sqlite";
 import { StatusBar } from "expo-status-bar";
 import { BarcodeScannerModal } from "../components/BarcodeScannerModal";
 import { SectionTitle } from "../components/SectionTitle";
+import {
+  Category,
+  CategoryRepository,
+} from "../repositories/categoryRepository";
+import { ProductRepository } from "../repositories/productRepository";
 
 export default function CreateProductScreen() {
   const { lang } = useLanguageStore();
 
   const [name, setName] = useState("");
   const [barcode, setBarcode] = useState("");
-  const [category, setCategory] = useState("");
   const [purchasePrice, setPurchasePrice] = useState("");
   const [salePrice, setSalePrice] = useState("");
   const [stock, setStock] = useState("");
   const [minimumStock, setMinimumStock] = useState("");
   const [unit, setUnit] = useState("Unidade");
   const [scannerVisible, setScannerVisible] = useState(false);
+  const [categoryId, setCategoryId] = useState<number | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [saving, setSaving] = useState(false);
+
+  const db = useSQLiteContext();
+
+  const productRepository = new ProductRepository(db);
+  const categoryRepository = new CategoryRepository(db);
 
   const isPortuguese = lang === "pt";
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!name.trim()) {
       return;
     }
 
-    console.log({
-      name,
-      barcode,
-      category,
-      purchasePrice,
-      salePrice,
-      stock,
-      minimumStock,
-      unit,
-    });
+    try {
+      setSaving(true);
 
-    router.back();
+      const productId = await productRepository.create({
+        nome: name,
+        codigo_barras: barcode || null,
+        categoria_id: categoryId,
+
+        preco_compra: Number(purchasePrice.replace(",", ".")) || 0,
+
+        preco: Number(salePrice.replace(",", ".")) || 0,
+
+        estoque: Number(stock) || 0,
+
+        estoque_minimo: Number(minimumStock) || 2,
+
+        unit,
+      });
+
+      console.log("Produto criado com sucesso:", productId);
+
+      router.back();
+    } catch (error) {
+      console.error("Erro ao criar produto:", error);
+    } finally {
+      setSaving(false);
+    }
   };
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  async function loadCategories() {
+    try {
+      const result = await categoryRepository.findAll();
+
+      setCategories(result);
+    } catch (error) {
+      console.error("Erro ao carregar categorias:", error);
+    }
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -60,7 +102,6 @@ export default function CreateProductScreen() {
         className="flex-1"
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        {/* Header */}
         <View className="flex-row items-center border-b border-border bg-surface px-5 py-4">
           <Pressable
             onPress={() => router.back()}
@@ -87,7 +128,6 @@ export default function CreateProductScreen() {
           keyboardShouldPersistTaps="handled"
           contentContainerClassName="px-5 pb-10 pt-6"
         >
-          {/* Basic information */}
           <SectionTitle
             icon="package"
             title={
@@ -141,12 +181,37 @@ export default function CreateProductScreen() {
           </View>
 
           {/* Category */}
-          <Input
-            label={isPortuguese ? "Categoria" : "Category"}
-            placeholder={isPortuguese ? "Ex: Bebidas" : "E.g. Drinks"}
-            value={category}
-            onChangeText={setCategory}
-          />
+          <View className="mt-5">
+            <Text className="mb-2 text-sm font-semibold text-text">
+              {isPortuguese ? "Categoria" : "Category"}
+            </Text>
+
+            <View className="flex-row flex-wrap gap-2">
+              {categories.map((category) => {
+                const selected = categoryId === category.id;
+
+                return (
+                  <Pressable
+                    key={category.id}
+                    onPress={() => setCategoryId(category.id)}
+                    className={`rounded-xl border px-4 py-3 ${
+                      selected
+                        ? "border-primary bg-primary"
+                        : "border-border bg-surface"
+                    }`}
+                  >
+                    <Text
+                      className={`text-sm font-semibold ${
+                        selected ? "text-white" : "text-text"
+                      }`}
+                    >
+                      {category.nome}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
 
           {/* Pricing */}
           <SectionTitle
@@ -246,17 +311,23 @@ export default function CreateProductScreen() {
           {/* Save */}
           <Pressable
             onPress={handleSave}
-            disabled={!name.trim()}
+            disabled={!name.trim() || saving}
             className={`mt-8 items-center rounded-2xl py-4 ${
-              name.trim() ? "bg-primary" : "bg-gray-300"
+              name.trim() && !saving ? "bg-primary" : "bg-gray-300"
             }`}
           >
             <Text
               className={`text-base font-bold ${
-                name.trim() ? "text-white" : "text-gray-500"
+                name.trim() && !saving ? "text-white" : "text-gray-500"
               }`}
             >
-              {isPortuguese ? "Guardar produto" : "Save product"}
+              {saving
+                ? isPortuguese
+                  ? "Guardando..."
+                  : "Saving..."
+                : isPortuguese
+                  ? "Guardar produto"
+                  : "Save product"}
             </Text>
           </Pressable>
 

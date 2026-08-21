@@ -1,20 +1,85 @@
 import { t } from "@/shared/i18n";
 import { useLanguageStore } from "@/store/i18n.store";
-import { router } from "expo-router";
-import React from "react";
-import { ScrollView, Text, View } from "react-native";
+import { router, useFocusEffect } from "expo-router";
+import React, { useCallback, useState } from "react";
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 
+import {
+  DashboardRepository,
+  RecentSale,
+} from "@/features/home/repositories/dashboardRepository";
+import { useSQLiteContext } from "expo-sqlite";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+import formatCurrency from "@/shared/format-currecy";
+import formatDate from "@/shared/formate-date";
 import { FastAcessItem } from "../components/falstAcess-item";
 import { HomeHeader } from "../components/header";
 
 export function HomeScreen() {
   const { lang } = useLanguageStore();
 
+  const db = useSQLiteContext();
+
+  const dashboardRepository = new DashboardRepository(db);
+
+  const [todaySalesTotal, setTodaySalesTotal] = useState(0);
+
+  const [todaySalesCount, setTodaySalesCount] = useState(0);
+
+  const [totalProducts, setTotalProducts] = useState(0);
+
+  const [recentSales, setRecentSales] = useState<RecentSale[]>([]);
+
+  const [loading, setLoading] = useState(true);
+
+  /**
+   * Carrega os dados do dashboard.
+   *
+   * useFocusEffect é interessante aqui porque
+   * quando o vendedor volta da tela de venda,
+   * o dashboard será atualizado.
+   */
+  useFocusEffect(
+    useCallback(() => {
+      loadDashboard();
+    }, []),
+  );
+
+  async function loadDashboard() {
+    try {
+      setLoading(true);
+
+      const [summary, sales] = await Promise.all([
+        dashboardRepository.getSummary(),
+        dashboardRepository.getRecentSales(5),
+      ]);
+
+      setTodaySalesTotal(summary.todaySalesTotal);
+
+      setTodaySalesCount(summary.todaySalesCount);
+
+      setTotalProducts(summary.totalProducts);
+
+      setRecentSales(sales);
+    } catch (error) {
+      console.error("Erro ao carregar dashboard:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <View className="flex-1 bg-background">
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
+
       <HomeHeader />
 
       <SafeAreaView style={{ flex: 1 }} edges={["bottom", "left", "right"]}>
@@ -22,13 +87,16 @@ export function HomeScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerClassName="px-5 pb-10"
         >
-          {/* Quick Access */}
+          {/* ================================= */}
+          {/* QUICK ACCESS */}
+          {/* ================================= */}
+
           <View className="mt-8">
             <Text className="mb-4 text-xl font-bold text-text">
               {t("quickAccess", lang)}
             </Text>
 
-            <View className="flex-row flex-wrap gap-2 items-center">
+            <View className="flex-row flex-wrap items-center gap-2">
               <FastAcessItem
                 icon="shopping-cart"
                 label={t("newSale", lang)}
@@ -55,56 +123,134 @@ export function HomeScreen() {
             </View>
           </View>
 
-          {/* Summary */}
+          {/* ================================= */}
+          {/* SUMMARY */}
+          {/* ================================= */}
+
           <View className="mt-8">
             <Text className="mb-4 text-xl font-bold text-text">
               {t("summary", lang)}
             </Text>
 
-            <View className="flex-row gap-3">
-              <View className="flex-1 rounded-2xl bg-primary p-4">
-                <Text className="text-sm text-white/70">
-                  {t("todaysSales", lang)}
-                </Text>
-
-                <Text className="mt-2 text-2xl font-bold text-white">0 Kz</Text>
+            {loading ? (
+              <View className="items-center py-8">
+                <ActivityIndicator />
               </View>
+            ) : (
+              <View className="flex-row gap-3">
+                {/* VENDAS */}
 
-              <View className="flex-1 rounded-2xl bg-secondary p-4">
-                <Text className="text-sm text-primary/70">
-                  {t("products", lang)}
-                </Text>
+                <View className="flex-1 rounded-2xl bg-primary p-4">
+                  <Text className="text-sm text-white/70">
+                    {t("todaysSales", lang)}
+                  </Text>
 
-                <Text className="mt-2 text-2xl font-bold text-primary">0</Text>
+                  <Text className="mt-2 text-2xl font-bold text-white">
+                    {formatCurrency(todaySalesTotal)}
+                  </Text>
+
+                  <Text className="mt-1 text-xs text-white/60">
+                    {todaySalesCount} {lang === "pt" ? "vendas" : "sales"}
+                  </Text>
+                </View>
+
+                {/* PRODUTOS */}
+
+                <View className="flex-1 rounded-2xl bg-secondary p-4">
+                  <Text className="text-sm text-primary/70">
+                    {t("products", lang)}
+                  </Text>
+
+                  <Text className="mt-2 text-2xl font-bold text-primary">
+                    {totalProducts}
+                  </Text>
+
+                  <Text className="mt-1 text-xs text-primary/60">
+                    {lang === "pt" ? "cadastrados" : "registered"}
+                  </Text>
+                </View>
               </View>
-            </View>
+            )}
           </View>
 
-          {/* Recent sales */}
+          {/* ================================= */}
+          {/* RECENT SALES */}
+          {/* ================================= */}
+
           <View className="mt-8">
             <View className="mb-4 flex-row items-center justify-between">
               <Text className="text-xl font-bold text-text">
                 {t("recentSales", lang)}
               </Text>
 
-              <Text className="text-sm font-semibold text-primary">
-                {t("viewAll", lang)}
-              </Text>
+              {recentSales.length > 0 && (
+                <Pressable onPress={() => console.log("Todas as vendas")}>
+                  <Text className="text-sm font-semibold text-primary">
+                    {t("viewAll", lang)}
+                  </Text>
+                </Pressable>
+              )}
             </View>
 
-            <View className="items-center rounded-2xl border border-dashed border-border bg-surface px-5 py-8">
-              <Text className="text-3xl">🧾</Text>
+            {loading ? null : recentSales.length === 0 ? (
+              <View className="items-center rounded-2xl border border-dashed border-border bg-surface px-5 py-8">
+                <Text className="text-3xl">🧾</Text>
 
-              <Text className="mt-3 font-semibold text-text">
-                {t("noSalesYet", lang)}
-              </Text>
+                <Text className="mt-3 font-semibold text-text">
+                  {t("noSalesYet", lang)}
+                </Text>
 
-              <Text className="mt-1 text-center text-sm text-textSecondary">
-                {lang === "pt"
-                  ? "As suas vendas recentes aparecerão aqui."
-                  : "Your recent sales will appear here."}
-              </Text>
-            </View>
+                <Text className="mt-1 text-center text-sm text-textSecondary">
+                  {lang === "pt"
+                    ? "As suas vendas recentes aparecerão aqui."
+                    : "Your recent sales will appear here."}
+                </Text>
+              </View>
+            ) : (
+              <View className="overflow-hidden rounded-2xl border border-border bg-surface">
+                {recentSales.map((sale, index) => (
+                  <View key={sale.id}>
+                    <View className="flex-row items-center px-4 py-4">
+                      {/* ÍCONE */}
+
+                      <View className="mr-3 h-11 w-11 items-center justify-center rounded-xl bg-green-50">
+                        <Text className="text-xl">🧾</Text>
+                      </View>
+
+                      {/* INFORMAÇÃO */}
+
+                      <View className="flex-1">
+                        <Text className="font-semibold text-text">
+                          {lang === "pt"
+                            ? `Venda #${sale.id}`
+                            : `Sale #${sale.id}`}
+                        </Text>
+
+                        <Text className="mt-1 text-xs text-textSecondary">
+                          {formatDate(sale.data_venda)}
+                        </Text>
+                      </View>
+
+                      {/* TOTAL */}
+
+                      <View className="items-end">
+                        <Text className="font-bold text-primary">
+                          {formatCurrency(sale.total)}
+                        </Text>
+
+                        <Text className="mt-1 text-xs text-textMuted">
+                          {sale.status}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {index < recentSales.length - 1 && (
+                      <View className="ml-4 h-px bg-border" />
+                    )}
+                  </View>
+                ))}
+              </View>
+            )}
           </View>
         </ScrollView>
       </SafeAreaView>
