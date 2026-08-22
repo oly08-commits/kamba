@@ -1,4 +1,3 @@
-import { t } from "@/shared/i18n";
 import { useLanguageStore } from "@/store/i18n.store";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -23,9 +22,7 @@ export default function App() {
     <View className="flex-1 items-center justify-center bg-primary">
       <StatusBar style={"light"} />
 
-      <Text className="text-secondary text-2xl font-bold">
-        {t("welcome", lang)}
-      </Text>
+      <Text className="text-secondary text-2xl font-bold">KAMBA</Text>
     </View>
   );
 }

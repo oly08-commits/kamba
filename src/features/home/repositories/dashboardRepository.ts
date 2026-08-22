@@ -40,10 +40,11 @@ export class DashboardRepository {
     const result = await this.db.getFirstAsync<{
       total: number;
     }>(`
-      SELECT COUNT(*) AS total
+      SELECT COALESCE(SUM(total), 0)
       FROM vendas
-      WHERE status = 'concluida'
-        AND date(data_venda) = date('now', 'localtime')
+      WHERE date(data_venda, 'localtime') =
+      date('now', 'localtime')
+      AND status = 'concluida';
     `);
 
     return result?.total ?? 0;

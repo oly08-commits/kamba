@@ -6,6 +6,9 @@ import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ProductRepository } from "@/features/produtcs/repositories/productRepository";
+import { Feather } from "@expo/vector-icons";
+import { StatusBar } from "expo-status-bar";
+import { ReceiptService } from "../repositories/receiptService";
 import { SaleRepository } from "../repositories/saleRepository";
 
 interface CartProduct {
@@ -31,6 +34,7 @@ export default function SoldScreen() {
   const [scanning, setScanning] = useState(true);
 
   const [finishingSale, setFinishingSale] = useState(false);
+  const [torch, setTorch] = useState(false);
 
   const total = products.reduce(
     (sum, product) => sum + product.price * product.quantity,
@@ -55,9 +59,6 @@ export default function SoldScreen() {
     setScanning(false);
 
     try {
-      console.log("Código:", data);
-      console.log("Tipo:", type);
-
       const product = await productRepository.findByBarcode(data);
 
       // ========================================
@@ -264,6 +265,24 @@ export default function SoldScreen() {
         },
       });
 
+      await ReceiptService.print({
+        saleId: result.saleId,
+        date: new Date().toLocaleString("pt-AO"),
+
+        items: products.map((product) => ({
+          name: product.name,
+          quantity: product.quantity,
+          price: product.price,
+          subtotal: product.price * product.quantity,
+        })),
+
+        total,
+
+        paymentMethod: "Dinheiro",
+        paidAmount: total,
+        change: 0,
+      });
+
       Alert.alert(
         lang === "pt" ? "Venda concluída" : "Sale completed",
 
@@ -360,12 +379,14 @@ export default function SoldScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
+      <StatusBar style="dark" />
       {/* CAMERA */}
 
       <View className="overflow-hidden rounded-b-3xl bg-primary">
-        <View className="h-52">
+        <View className="h-56">
           <CameraView
             style={{ flex: 1 }}
+            enableTorch={torch}
             facing="back"
             barcodeScannerSettings={{
               barcodeTypes: [
@@ -380,7 +401,14 @@ export default function SoldScreen() {
             onBarcodeScanned={scanning ? handleBarcodeScanned : undefined}
           />
 
-          <View className="absolute inset-0 items-center justify-center">
+          <View className="absolute inset-0 items-center justify-center gap-2">
+            <Pressable onPress={() => setTorch(!torch)}>
+              <Feather
+                name={torch ? "sun" : "zap"}
+                size={22}
+                color={torch ? "#DBAA68" : "#FFFFFF"}
+              />
+            </Pressable>
             <View className="h-40 w-72 rounded-2xl border-2 border-secondary">
               <View className="absolute left-4 right-4 top-1/2 h-0.5 bg-secondary" />
             </View>
@@ -472,7 +500,7 @@ export default function SoldScreen() {
 
       {/* TOTAL */}
 
-      <View className="mx-5 mt-6 rounded-3xl bg-primary p-5">
+      <View className="mx-5 mt-6 rounded-3xl bg-primary p-4">
         <View className="flex-row items-center justify-between">
           <View>
             <Text className="text-sm text-white/70">
