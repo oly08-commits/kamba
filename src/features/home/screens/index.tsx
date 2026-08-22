@@ -40,13 +40,6 @@ export function HomeScreen() {
 
   const [loading, setLoading] = useState(true);
 
-  /**
-   * Carrega os dados do dashboard.
-   *
-   * useFocusEffect é interessante aqui porque
-   * quando o vendedor volta da tela de venda,
-   * o dashboard será atualizado.
-   */
   useFocusEffect(
     useCallback(() => {
       loadDashboard();
@@ -59,7 +52,7 @@ export function HomeScreen() {
 
       const [summary, sales] = await Promise.all([
         dashboardRepository.getSummary(),
-        dashboardRepository.getRecentSales(5),
+        dashboardRepository.getRecentSales(15),
       ]);
 
       setTodaySalesTotal(summary.todaySalesTotal);
@@ -67,6 +60,7 @@ export function HomeScreen() {
       setTodaySalesCount(summary.todaySalesCount);
 
       setTotalProducts(summary.totalProducts);
+      console.log(summary);
 
       setRecentSales(sales);
     } catch (error) {
@@ -82,15 +76,14 @@ export function HomeScreen() {
 
       <HomeHeader />
 
-      <SafeAreaView style={{ flex: 1 }} edges={["bottom", "left", "right"]}>
+      <SafeAreaView
+        style={{ flex: 1, marginTop: -15 }}
+        edges={["bottom", "left", "right"]}
+      >
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerClassName="px-5 pb-10"
         >
-          {/* ================================= */}
-          {/* QUICK ACCESS */}
-          {/* ================================= */}
-
           <View className="mt-8">
             <Text className="mb-4 text-xl font-bold text-text">
               {t("quickAccess", lang)}
@@ -122,10 +115,6 @@ export function HomeScreen() {
               />
             </View>
           </View>
-
-          {/* ================================= */}
-          {/* SUMMARY */}
-          {/* ================================= */}
 
           <View className="mt-8">
             <Text className="mb-4 text-xl font-bold text-text">
@@ -173,10 +162,6 @@ export function HomeScreen() {
             )}
           </View>
 
-          {/* ================================= */}
-          {/* RECENT SALES */}
-          {/* ================================= */}
-
           <View className="mt-8">
             <View className="mb-4 flex-row items-center justify-between">
               <Text className="text-xl font-bold text-text">
@@ -192,7 +177,8 @@ export function HomeScreen() {
               )}
             </View>
 
-            {loading ? null : recentSales.length === 0 ? (
+            {loading && null}
+            {!loading && recentSales.length === 0 && (
               <View className="items-center rounded-2xl border border-dashed border-border bg-surface px-5 py-8">
                 <Text className="text-3xl">🧾</Text>
 
@@ -206,7 +192,9 @@ export function HomeScreen() {
                     : "Your recent sales will appear here."}
                 </Text>
               </View>
-            ) : (
+            )}
+
+            {!loading && recentSales.length > 0 && (
               <View className="overflow-hidden rounded-2xl border border-border bg-surface">
                 {recentSales.map((sale, index) => (
                   <View key={sale.id}>

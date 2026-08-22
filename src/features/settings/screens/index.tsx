@@ -1,5 +1,8 @@
 import { t } from "@/shared/i18n";
 import { useLanguageStore } from "@/store/i18n.store";
+import colors from "@/theme/colos";
+import { Feather } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
@@ -19,18 +22,23 @@ export default function SettingsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        <View className="pt-6 pb-8 bg-primary px-5">
-          <Text className="text-3xl font-bold text-white">
-            {t("settings", lang)}
-          </Text>
+        <View className="bg-primary flex-row items-center gap-2">
+          <Pressable onPress={() => router.back()}>
+            <Feather name="chevron-left" color={colors.white} size={25} />
+          </Pressable>
+          <View className="pt-6 pb-8 pr-5">
+            <Text className="text-3xl font-bold text-white">
+              {t("settings", lang)}
+            </Text>
 
-          <Text className="mt-2 text-base text-textSecondary">
-            {t("customizeExperience", lang)}
-          </Text>
+            <Text className=" text-base text-textSecondary">
+              {t("customizeExperience", lang)}
+            </Text>
+          </View>
         </View>
 
         {/* General */}
-        <View className="mb-6 px-5">
+        <View className="mb-6 mt-3 px-5">
           <Text className="mb-3 text-sm font-semibold uppercase tracking-wider text-textMuted">
             {t("general", lang)}
           </Text>

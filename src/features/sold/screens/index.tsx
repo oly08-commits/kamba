@@ -6,6 +6,8 @@ import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ProductRepository } from "@/features/produtcs/repositories/productRepository";
+import formatCurrency from "@/shared/format-currecy";
+import { t } from "@/shared/i18n";
 import { Feather } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 import { ReceiptService } from "../repositories/receiptService";
@@ -149,9 +151,7 @@ export default function SoldScreen() {
       setProducts((current) => {
         const existing = current.find((item) => item.id === product.id);
 
-        // Produto já está no carrinho
         if (existing) {
-          // Não permitir quantidade acima do estoque
           if (existing.quantity >= product.estoque) {
             return current;
           }
@@ -166,7 +166,6 @@ export default function SoldScreen() {
           );
         }
 
-        // Produto novo
         return [
           ...current,
           {
@@ -219,25 +218,13 @@ export default function SoldScreen() {
     }
   };
 
-  // ==========================================
-  // REMOVER PRODUTO
-  // ==========================================
-
   const removeProduct = (id: number) => {
     setProducts((current) => current.filter((product) => product.id !== id));
   };
 
-  // ==========================================
-  // LIMPAR CARRINHO
-  // ==========================================
-
   const clearCart = () => {
     setProducts([]);
   };
-
-  // ==========================================
-  // FINALIZAR VENDA
-  // ==========================================
 
   const handleFinishSale = async () => {
     if (products.length === 0 || finishingSale) {
@@ -247,7 +234,6 @@ export default function SoldScreen() {
     try {
       setFinishingSale(true);
 
-      // Para evitar que o scanner continue
       setScanning(false);
 
       const result = await saleRepository.createSale({
@@ -333,10 +319,6 @@ export default function SoldScreen() {
     }
   };
 
-  // ==========================================
-  // PERMISSÃO
-  // ==========================================
-
   if (!permission) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center bg-background">
@@ -357,7 +339,7 @@ export default function SoldScreen() {
         </View>
 
         <Text className="mt-6 text-center text-2xl font-bold text-primary">
-          {lang === "pt" ? "Acesso à câmera" : "Camera access"}
+          {t("CameraAccess", lang)}
         </Text>
 
         <Text className="mt-3 text-center text-base leading-6 text-textSecondary">
@@ -370,9 +352,7 @@ export default function SoldScreen() {
           onPress={requestPermission}
           className="mt-8 rounded-2xl bg-primary px-8 py-4 active:opacity-80"
         >
-          <Text className="font-bold text-white">
-            {lang === "pt" ? "Permitir câmera" : "Allow camera"}
-          </Text>
+          <Text className="font-bold text-white">{t("AllowCamera", lang)}</Text>
         </Pressable>
       </SafeAreaView>
     );
@@ -430,7 +410,7 @@ export default function SoldScreen() {
         <View className="mt-7 px-5">
           <View className="mb-3 flex-row items-center justify-between">
             <Text className="text-lg font-bold text-text">
-              {lang === "pt" ? "Produtos" : "Products"}
+              {t("products", lang)}
             </Text>
 
             <Text className="text-sm text-textSecondary">
@@ -473,7 +453,7 @@ export default function SoldScreen() {
                       </Text>
 
                       <Text className="mt-1 text-sm text-textSecondary">
-                        {product.quantity} × {product.price.toFixed(2)} Kz
+                        {product.quantity} × {formatCurrency(product.price)}
                       </Text>
                     </View>
 
@@ -487,7 +467,7 @@ export default function SoldScreen() {
                         className="mt-2"
                       >
                         <Text className="text-xs font-semibold text-error">
-                          {lang === "pt" ? "Remover" : "Remove"}
+                          {t("remove", lang)}
                         </Text>
                       </Pressable>
                     </View>
@@ -509,11 +489,11 @@ export default function SoldScreen() {
         <View className="flex-row items-center justify-between">
           <View>
             <Text className="text-sm text-white/70">
-              {lang === "pt" ? "Total da venda" : "Sale total"}
+              {t("Saletotal", lang)}
             </Text>
 
             <Text className="mt-1 text-3xl font-bold text-white">
-              {total.toFixed(2)} Kz
+              {formatCurrency(total)}
             </Text>
           </View>
 
@@ -535,7 +515,7 @@ export default function SoldScreen() {
         <Pressable
           disabled={products.length === 0 || finishingSale}
           onPress={handleFinishSale}
-          className={`mt-5 items-center rounded-2xl py-4 ${
+          className={`mt-2 items-center rounded-2xl py-4 ${
             products.length > 0 && !finishingSale
               ? "bg-secondary"
               : "bg-white/20"
@@ -548,13 +528,7 @@ export default function SoldScreen() {
                 : "text-white/50"
             }`}
           >
-            {finishingSale
-              ? lang === "pt"
-                ? "Finalizando..."
-                : "Completing..."
-              : lang === "pt"
-                ? "Finalizar venda"
-                : "Complete sale"}
+            {finishingSale ? t("Completing", lang) : t("CompleteSale", lang)}
           </Text>
         </Pressable>
       </View>

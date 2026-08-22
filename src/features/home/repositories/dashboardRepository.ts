@@ -15,11 +15,8 @@ export interface DashboardSummary {
 }
 
 export class DashboardRepository {
-  constructor(private db: SQLiteDatabase) {}
+  constructor(private readonly db: SQLiteDatabase) { }
 
-  /**
-   * Total vendido hoje
-   */
   async getTodaySalesTotal(): Promise<number> {
     const result = await this.db.getFirstAsync<{
       total: number;
@@ -33,26 +30,19 @@ export class DashboardRepository {
     return result?.total ?? 0;
   }
 
-  /**
-   * Quantidade de vendas realizadas hoje
-   */
   async getTodaySalesCount(): Promise<number> {
     const result = await this.db.getFirstAsync<{
       total: number;
     }>(`
-      SELECT COALESCE(SUM(total), 0)
+      SELECT COUNT(*) AS total
       FROM vendas
-      WHERE date(data_venda, 'localtime') =
-      date('now', 'localtime')
-      AND status = 'concluida';
+      WHERE status = 'concluida'
+        AND date(data_venda) = date('now', 'localtime')
     `);
 
     return result?.total ?? 0;
   }
 
-  /**
-   * Quantidade de produtos cadastrados
-   */
   async getTotalProducts(): Promise<number> {
     const result = await this.db.getFirstAsync<{
       total: number;
@@ -65,9 +55,6 @@ export class DashboardRepository {
     return result?.total ?? 0;
   }
 
-  /**
-   * Últimas vendas
-   */
   async getRecentSales(limit = 5): Promise<RecentSale[]> {
     return this.db.getAllAsync<RecentSale>(
       `
@@ -86,9 +73,6 @@ export class DashboardRepository {
     );
   }
 
-  /**
-   * Carrega todo o resumo do dashboard.
-   */
   async getSummary(): Promise<DashboardSummary> {
     const [todaySalesTotal, todaySalesCount, totalProducts] = await Promise.all(
       [

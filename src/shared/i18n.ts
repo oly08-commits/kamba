@@ -28,6 +28,9 @@ const translations = {
     viewAll: "View all",
     noSalesYet: "No sales yet",
     recentSalesDescription: "Your recent sales will appear here.",
+    Completing: "Completing",
+    CompleteSale: "Complete sale",
+    Saletotal: "Sale total",
 
     // Actions
     save: "Save",
@@ -35,6 +38,7 @@ const translations = {
     confirm: "Confirm",
     delete: "Delete",
     edit: "Edit",
+    editProfile: "Edit Profile",
     create: "Create",
     update: "Update",
     add: "Add",
@@ -91,6 +95,10 @@ const translations = {
     date: "Date",
     time: "Time",
 
+    //Camera
+    AllowCamera: "Allow camera",
+    CameraAccess: "Camera access",
+
     // Settings
     language: "Language",
     theme: "Theme",
@@ -137,6 +145,7 @@ const translations = {
     confirm: "Confirmar",
     delete: "Eliminar",
     edit: "Editar",
+    editProfile: "Editar perfil",
     create: "Criar",
     update: "Atualizar",
     add: "Adicionar",
@@ -148,6 +157,9 @@ const translations = {
     submit: "Enviar",
     send: "Enviar",
     loading: "A carregar...",
+    Completing: "Finalizando",
+    CompleteSale: "Finalizar venda",
+    Saletotal: "Total da venda",
 
     login: "Iniciar sessão",
     logout: "Terminar sessão",
@@ -188,6 +200,9 @@ const translations = {
     date: "Data",
     time: "Hora",
 
+    AllowCamera: "Permitir câmera",
+    CameraAccess: "Acesso à câmera",
+
     language: "Idioma",
     theme: "Tema",
     lightMode: "Modo claro",
@@ -204,14 +219,9 @@ const translations = {
   },
 } satisfies Record<langs, Dictionary>;
 
-/**
- * Todas as chaves disponíveis nas traduções.
- */
+
 export type TranslationKey = keyof typeof translations.en;
 
-/**
- * Função de tradução tipada.
- */
 export function t(key: TranslationKey, lang: "en" | "pt"): string {
   const dictionary = translations[lang] || translations.en;
   return dictionary[key] || translations.en[key] || key;

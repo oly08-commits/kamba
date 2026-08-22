@@ -1,4 +1,5 @@
 import { langs, t } from "@/shared/i18n";
+import colors from "@/theme/colos";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { Pressable, Text, TextInput, View } from "react-native";
@@ -15,10 +16,16 @@ export function Header({
   productsCount,
   search,
   setSearch,
-}: HeaderProps) {
+}: Readonly<HeaderProps>) {
   return (
-    <View className="px-5 pt-5">
+    <View className="pr-5 pt-5">
       <View className="flex-row items-center justify-between">
+        <Feather
+          onPress={() => router.back()}
+          name="chevron-left"
+          size={30}
+          color={colors.primary}
+        />
         <View className="flex-1">
           <Text className="text-3xl font-bold text-primary">
             {t("products", lang)}
@@ -40,7 +47,7 @@ export function Header({
 
       {/* PESQUISA */}
 
-      <View className="mt-6 flex-row items-center rounded-2xl border border-border bg-surface px-4">
+      <View className="mt-6 ml-5 flex-row items-center rounded-2xl border border-border bg-surface px-4">
         <Feather name="search" size={20} color="#8A948F" />
 
         <TextInput
