@@ -1,5 +1,6 @@
 import { t } from "@/shared/i18n";
 import { useLanguageStore } from "@/store/i18n.store";
+import { StatusBar } from "expo-status-bar";
 import React from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -11,6 +12,7 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
+      <StatusBar style="dark" />
       <ScrollView
         className="flex-1"
         contentContainerClassName=" pb-10"

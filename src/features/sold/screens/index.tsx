@@ -265,23 +265,28 @@ export default function SoldScreen() {
         },
       });
 
-      await ReceiptService.print({
-        saleId: result.saleId,
-        date: new Date().toLocaleString("pt-AO"),
+      await ReceiptService.print(
+        {
+          saleId: result.saleId,
+          date: new Date().toLocaleString("pt-AO"),
 
-        items: products.map((product) => ({
-          name: product.name,
-          quantity: product.quantity,
-          price: product.price,
-          subtotal: product.price * product.quantity,
-        })),
+          items: products.map((product) => ({
+            name: product.name,
+            quantity: product.quantity,
+            price: product.price,
+            subtotal: product.price * product.quantity,
+          })),
 
-        total,
+          total,
 
-        paymentMethod: "Dinheiro",
-        paidAmount: total,
-        change: 0,
-      });
+          paymentMethod: "Dinheiro",
+          paidAmount: total,
+          change: 0,
+        },
+        {
+          width: "80mm",
+        },
+      );
 
       Alert.alert(
         lang === "pt" ? "Venda concluída" : "Sale completed",
