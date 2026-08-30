@@ -32,7 +32,7 @@ const translations = {
     Completing: "Completing",
     CompleteSale: "Complete sale",
     Saletotal: "Sale total",
-
+    cadProdut: "Cadastre um novo produto",
     // Actions
     save: "Save",
     cancel: "Cancel",
@@ -141,6 +141,7 @@ const translations = {
     viewAll: "Ver todas",
     noSalesYet: "Nenhuma venda ainda",
     recentSalesDescription: "As suas vendas recentes aparecerão aqui.",
+    cadProdut: "Cadastre um novo produto",
 
     save: "Guardar",
     cancel: "Cancelar",

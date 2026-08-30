@@ -128,7 +128,14 @@ export default function ProductDetailScreen() {
         </View>
 
         <Pressable
-          onPress={() => router.push(`/private/produtcs/${product.id}/edit`)}
+          onPress={() =>
+            router.push({
+              pathname: "/private/produtcs/create",
+              params: {
+                id,
+              },
+            })
+          }
           className="mt-6 items-center rounded-2xl bg-primary py-4"
         >
           <Text className="font-bold text-white">

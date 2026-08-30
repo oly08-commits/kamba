@@ -7,7 +7,6 @@ import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SettingsScreen() {
   const { lang, switchLanguage } = useLanguageStore();
@@ -15,7 +14,7 @@ export default function SettingsScreen() {
   const isPortuguese = lang === "pt";
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
+    <View className="flex-1 bg-background">
       <StatusBar style="dark" />
       <ScrollView
         className="flex-1"
@@ -180,6 +179,6 @@ export default function SettingsScreen() {
           </Text>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
