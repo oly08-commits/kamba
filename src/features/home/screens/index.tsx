@@ -15,8 +15,6 @@ import {
   RecentSale,
 } from "@/features/home/repositories/dashboardRepository";
 import { useSQLiteContext } from "expo-sqlite";
-import { StatusBar } from "expo-status-bar";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 import { UserRepository } from "@/features/profile/repositories/userrepositories";
 import { User } from "@/features/profile/types/user";
@@ -77,175 +75,168 @@ export function HomeScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <StatusBar style="light" />
-
       <HomeHeader user={userData} />
 
-      <SafeAreaView
-        style={{ flex: 1, marginTop: -15 }}
-        edges={["bottom", "left", "right"]}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerClassName="px-5 pb-10"
       >
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerClassName="px-5 pb-10"
-        >
-          <View className="mt-8">
-            <Text className="mb-4 text-xl font-bold text-text">
-              {t("quickAccess", lang)}
-            </Text>
+        <View className="mt-8">
+          <Text className="mb-4 text-xl font-bold text-text">
+            {t("quickAccess", lang)}
+          </Text>
 
-            <View className="flex-row flex-wrap items-center gap-2">
-              <FastAcessItem
-                icon="shopping-cart"
-                label={t("newSale", lang)}
-                onPress={() => router.push("/private/sold")}
-              />
+          <View className="flex-row flex-wrap items-center gap-2">
+            <FastAcessItem
+              icon="shopping-cart"
+              label={t("newSale", lang)}
+              onPress={() => router.push("/private/sold")}
+            />
 
-              <FastAcessItem
-                icon="package"
-                label={t("products", lang)}
-                onPress={() => router.push("/private/produtcs")}
-              />
+            <FastAcessItem
+              icon="package"
+              label={t("products", lang)}
+              onPress={() => router.push("/private/produtcs")}
+            />
 
-              <FastAcessItem
-                icon="users"
-                label={t("customers", lang)}
-                onPress={() => console.log("Clientes")}
-              />
+            <FastAcessItem
+              icon="users"
+              label={t("customers", lang)}
+              onPress={() => console.log("Clientes")}
+            />
 
-              <FastAcessItem
-                icon="bar-chart-2"
-                label={t("reports", lang)}
-                onPress={() => console.log("Relatórios")}
-              />
-            </View>
+            <FastAcessItem
+              icon="bar-chart-2"
+              label={t("reports", lang)}
+              onPress={() => console.log("Relatórios")}
+            />
           </View>
+        </View>
 
-          <View className="mt-8">
-            <Text className="mb-4 text-xl font-bold text-text">
-              {t("summary", lang)}
+        <View className="mt-8">
+          <Text className="mb-4 text-xl font-bold text-text">
+            {t("summary", lang)}
+          </Text>
+
+          {loading ? (
+            <View className="items-center py-8">
+              <ActivityIndicator />
+            </View>
+          ) : (
+            <View className="flex-row gap-3">
+              {/* VENDAS */}
+
+              <View className="flex-1 rounded-2xl bg-primary p-4">
+                <Text className="text-sm text-secondary/70">
+                  {t("todaysSales", lang)}
+                </Text>
+
+                <Text className="mt-2 text-2xl font-bold text-secondary">
+                  {formatCurrency(todaySalesTotal)}
+                </Text>
+
+                <Text className="mt-1 text-xs text-secondary/60">
+                  {todaySalesCount} {lang === "pt" ? "vendas" : "sales"}
+                </Text>
+              </View>
+
+              {/* PRODUTOS */}
+
+              <View className="flex-1 rounded-2xl bg-secondary p-4">
+                <Text className="text-sm text-primary/70">
+                  {t("products", lang)}
+                </Text>
+
+                <Text className="mt-2 text-2xl font-bold text-primary">
+                  {totalProducts}
+                </Text>
+
+                <Text className="mt-1 text-xs text-primary/60">
+                  {lang === "pt" ? "cadastrados" : "registered"}
+                </Text>
+              </View>
+            </View>
+          )}
+        </View>
+
+        <View className="mt-8">
+          <View className="mb-4 flex-row items-center justify-between">
+            <Text className="text-xl font-bold text-text">
+              {t("recentSales", lang)}
             </Text>
 
-            {loading ? (
-              <View className="items-center py-8">
-                <ActivityIndicator />
-              </View>
-            ) : (
-              <View className="flex-row gap-3">
-                {/* VENDAS */}
-
-                <View className="flex-1 rounded-2xl bg-primary p-4">
-                  <Text className="text-sm text-secondary/70">
-                    {t("todaysSales", lang)}
-                  </Text>
-
-                  <Text className="mt-2 text-2xl font-bold text-secondary">
-                    {formatCurrency(todaySalesTotal)}
-                  </Text>
-
-                  <Text className="mt-1 text-xs text-secondary/60">
-                    {todaySalesCount} {lang === "pt" ? "vendas" : "sales"}
-                  </Text>
-                </View>
-
-                {/* PRODUTOS */}
-
-                <View className="flex-1 rounded-2xl bg-secondary p-4">
-                  <Text className="text-sm text-primary/70">
-                    {t("products", lang)}
-                  </Text>
-
-                  <Text className="mt-2 text-2xl font-bold text-primary">
-                    {totalProducts}
-                  </Text>
-
-                  <Text className="mt-1 text-xs text-primary/60">
-                    {lang === "pt" ? "cadastrados" : "registered"}
-                  </Text>
-                </View>
-              </View>
+            {recentSales.length > 0 && (
+              <Pressable onPress={() => console.log("Todas as vendas")}>
+                <Text className="text-sm font-semibold text-primary">
+                  {t("viewAll", lang)}
+                </Text>
+              </Pressable>
             )}
           </View>
 
-          <View className="mt-8">
-            <View className="mb-4 flex-row items-center justify-between">
-              <Text className="text-xl font-bold text-text">
-                {t("recentSales", lang)}
+          {!loading && recentSales.length === 0 && (
+            <View className="items-center rounded-2xl border border-dashed border-border bg-surface px-5 py-8">
+              <Text className="text-4xl">🧾</Text>
+
+              <Text className="mt-3 font-semibold text-text">
+                {t("noSalesYet", lang)}
               </Text>
 
-              {recentSales.length > 0 && (
-                <Pressable onPress={() => console.log("Todas as vendas")}>
-                  <Text className="text-sm font-semibold text-primary">
-                    {t("viewAll", lang)}
-                  </Text>
-                </Pressable>
-              )}
+              <Text className="mt-1 text-center text-sm text-textSecondary">
+                {lang === "pt"
+                  ? "As suas vendas recentes aparecerão aqui."
+                  : "Your recent sales will appear here."}
+              </Text>
             </View>
+          )}
 
-            {!loading && recentSales.length === 0 && (
-              <View className="items-center rounded-2xl border border-dashed border-border bg-surface px-5 py-8">
-                <Text className="text-4xl">🧾</Text>
+          {!loading && recentSales.length > 0 && (
+            <View className="overflow-hidden rounded-2xl border border-border bg-surface">
+              {recentSales.map((sale, index) => (
+                <View key={sale.id}>
+                  <View className="flex-row items-center px-4 py-4">
+                    {/* ÍCONE */}
 
-                <Text className="mt-3 font-semibold text-text">
-                  {t("noSalesYet", lang)}
-                </Text>
-
-                <Text className="mt-1 text-center text-sm text-textSecondary">
-                  {lang === "pt"
-                    ? "As suas vendas recentes aparecerão aqui."
-                    : "Your recent sales will appear here."}
-                </Text>
-              </View>
-            )}
-
-            {!loading && recentSales.length > 0 && (
-              <View className="overflow-hidden rounded-2xl border border-border bg-surface">
-                {recentSales.map((sale, index) => (
-                  <View key={sale.id}>
-                    <View className="flex-row items-center px-4 py-4">
-                      {/* ÍCONE */}
-
-                      <View className="mr-3 h-11 w-11 items-center justify-center rounded-xl bg-green-50">
-                        <Text className="text-xl">🧾</Text>
-                      </View>
-
-                      {/* INFORMAÇÃO */}
-
-                      <View className="flex-1">
-                        <Text className="font-semibold text-text">
-                          {lang === "pt"
-                            ? `Venda #${sale.id}`
-                            : `Sale #${sale.id}`}
-                        </Text>
-
-                        <Text className="mt-1 text-xs text-textSecondary">
-                          {formatDate(sale.data_venda)}
-                        </Text>
-                      </View>
-
-                      {/* TOTAL */}
-
-                      <View className="items-end">
-                        <Text className="font-bold text-primary">
-                          {formatCurrency(sale.total)}
-                        </Text>
-
-                        <Text className="mt-1 text-xs text-textMuted">
-                          {sale.status}
-                        </Text>
-                      </View>
+                    <View className="mr-3 h-11 w-11 items-center justify-center rounded-xl bg-green-50">
+                      <Text className="text-xl">🧾</Text>
                     </View>
 
-                    {index < recentSales.length - 1 && (
-                      <View className="ml-4 h-px bg-border" />
-                    )}
+                    {/* INFORMAÇÃO */}
+
+                    <View className="flex-1">
+                      <Text className="font-semibold text-text">
+                        {lang === "pt"
+                          ? `Venda #${sale.id}`
+                          : `Sale #${sale.id}`}
+                      </Text>
+
+                      <Text className="mt-1 text-xs text-textSecondary">
+                        {formatDate(sale.data_venda)}
+                      </Text>
+                    </View>
+
+                    {/* TOTAL */}
+
+                    <View className="items-end">
+                      <Text className="font-bold text-primary">
+                        {formatCurrency(sale.total)}
+                      </Text>
+
+                      <Text className="mt-1 text-xs text-textMuted">
+                        {sale.status}
+                      </Text>
+                    </View>
                   </View>
-                ))}
-              </View>
-            )}
-          </View>
-        </ScrollView>
-      </SafeAreaView>
+
+                  {index < recentSales.length - 1 && (
+                    <View className="ml-4 h-px bg-border" />
+                  )}
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+      </ScrollView>
     </View>
   );
 }

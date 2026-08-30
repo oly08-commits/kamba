@@ -172,7 +172,7 @@ export default function ProductsScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
+    <View className="flex-1 bg-background">
       <StatusBar style="dark" />
 
       <Header
@@ -214,6 +214,6 @@ export default function ProductsScreen() {
           }
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 }

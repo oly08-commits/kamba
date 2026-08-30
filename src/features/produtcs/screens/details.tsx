@@ -9,7 +9,6 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Pressable, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams<{
@@ -73,15 +72,15 @@ export default function ProductDetailScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-background">
+      <View className="flex-1 items-center justify-center bg-background">
         <ActivityIndicator size="large" color="#063023" />
-      </SafeAreaView>
+      </View>
     );
   }
 
   if (!product) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-background px-5">
+      <View className="flex-1 items-center justify-center bg-background px-5">
         <Text className="text-lg font-bold text-text">
           Produto não encontrado
         </Text>
@@ -92,12 +91,12 @@ export default function ProductDetailScreen() {
         >
           <Text className="font-bold text-white">Voltar</Text>
         </Pressable>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
+    <View className="flex-1 bg-background">
       <View className="flex gap-2 pt-6 items-center w-full flex-row">
         <Pressable onPress={() => router.back()}>
           <Feather name="chevron-left" size={28} color={colors.primary} />
@@ -145,6 +144,6 @@ export default function ProductDetailScreen() {
           </Text>
         </Pressable>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }

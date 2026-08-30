@@ -1,5 +1,5 @@
 import { Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -10,7 +10,6 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Input } from "@/shared/components/input";
 import { useLanguageStore } from "@/store/i18n.store";
@@ -26,6 +25,7 @@ import {
 import { ProductRepository } from "../repositories/productRepository";
 
 export default function CreateProductScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
   const { lang } = useLanguageStore();
 
   const [name, setName] = useState("");
@@ -39,6 +39,8 @@ export default function CreateProductScreen() {
   const [categoryId, setCategoryId] = useState<number | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [saving, setSaving] = useState(false);
+
+  const isEditing = !!id;
 
   const db = useSQLiteContext();
 
@@ -96,7 +98,7 @@ export default function CreateProductScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
+    <View className="flex-1 bg-background">
       <StatusBar style={"dark"} />
 
       <KeyboardAvoidingView
@@ -347,6 +349,6 @@ export default function CreateProductScreen() {
           }}
         />
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }

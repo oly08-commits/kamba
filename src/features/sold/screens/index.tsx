@@ -8,8 +8,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ProductRepository } from "@/features/produtcs/repositories/productRepository";
 import formatCurrency from "@/shared/format-currecy";
 import { t } from "@/shared/i18n";
+import colors from "@/theme/colos";
 import { Feather } from "@expo/vector-icons";
-import { StatusBar } from "expo-status-bar";
 import { ReceiptService } from "../repositories/receiptService";
 import { SaleRepository } from "../repositories/saleRepository";
 
@@ -355,10 +355,7 @@ export default function SoldScreen() {
   // ==========================================
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
-      <StatusBar style="dark" />
-      {/* CAMERA */}
-
+    <View className="flex-1 bg-background">
       <View className="overflow-hidden rounded-b-3xl bg-primary">
         <View className="h-56">
           <CameraView
@@ -383,10 +380,16 @@ export default function SoldScreen() {
               <Feather
                 name={torch ? "sun" : "zap"}
                 size={22}
-                color={torch ? "#DBAA68" : "#FFFFFF"}
+                color={torch ? colors.secondary : colors.white}
               />
             </Pressable>
-            <View className="h-40 w-72 rounded-2xl border-2 border-secondary">
+            <View
+              style={{
+                borderColor: torch ? colors.secondary : colors.white,
+              }}
+
+              className="h-40 w-72 rounded-2xl border-2 "
+            >
               <View className="absolute left-4 right-4 top-1/2 h-0.5 bg-secondary" />
             </View>
           </View>
@@ -524,6 +527,6 @@ export default function SoldScreen() {
           </Text>
         </Pressable>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
