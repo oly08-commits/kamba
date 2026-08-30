@@ -1,13 +1,10 @@
-import { useLanguageStore } from "@/store/i18n.store";
+import { assetsPath } from "@/shared/assets";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
-import { Text, View } from "react-native";
+import { Image, Text, View } from "react-native";
 
 export default function App() {
-  const lang = useLanguageStore((state) => state.lang);
-  const switchlang = useLanguageStore((state) => state.switchLanguage);
-
   useEffect(() => {
     const interval = setTimeout(() => {
       router.replace("/private");
@@ -21,7 +18,7 @@ export default function App() {
   return (
     <View className="flex-1 items-center justify-center bg-primary">
       <StatusBar style={"light"} />
-
+      <Image source={assetsPath.logo} style={{ width: 200, height: 200 }} />
       <Text className="text-secondary text-2xl font-bold">KAMBA</Text>
     </View>
   );
