@@ -1,9 +1,14 @@
 import { ProductRepository } from "@/features/produtcs/repositories/productRepository";
 import { Product } from "@/features/produtcs/types/product";
+import formatCurrency from "@/shared/format-currecy";
+import { t } from "@/shared/i18n";
+import { useLanguageStore } from "@/store/i18n.store";
+import colors from "@/theme/colos";
+import { Feather } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ProductDetailScreen() {
@@ -12,7 +17,7 @@ export default function ProductDetailScreen() {
   }>();
 
   const db = useSQLiteContext();
-
+  const lang = useLanguageStore((s) => s.lang);
   const productRepository = new ProductRepository(db);
 
   const [product, setProduct] = useState<Product | null>(null);
@@ -38,6 +43,33 @@ export default function ProductDetailScreen() {
       setLoading(false);
     }
   }
+
+  const handleDeleteProduct = () => {
+    if (!id) return;
+    try {
+      Alert.alert(
+        lang === "pt" ? "Deletar Produto" : "Delete Product",
+
+        `${product?.nome}\n${formatCurrency(Number(product?.preco))}\n ${product?.estoque} ${product?.unit} em estoque`,
+
+        [
+          {
+            text: t("cancel", lang),
+            style: "cancel",
+          },
+          {
+            text: t("delete", lang),
+            onPress: async () => {
+              await productRepository.delete(Number(id));
+              router.back();
+            },
+          },
+        ],
+      );
+    } catch (error) {
+      console.log("Erro ao deletar", error);
+    }
+  };
 
   if (loading) {
     return (
@@ -66,18 +98,27 @@ export default function ProductDetailScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <View className="px-5 pt-6">
-        <Text className="text-2xl font-bold text-primary">{product.nome}</Text>
+      <View className="flex gap-2 pt-6 items-center w-full flex-row">
+        <Pressable onPress={() => router.back()}>
+          <Feather name="chevron-left" size={28} color={colors.primary} />
+        </Pressable>
+        <View>
+          <Text className="text-2xl font-bold text-primary">
+            {product.nome}
+          </Text>
 
-        <Text className="mt-2 text-textSecondary">
-          Código: {product.codigo_barras || "Sem código"}
-        </Text>
+          <Text className="mt-2 text-textSecondary">
+            Código: {product.codigo_barras || "Sem código"}
+          </Text>
+        </View>
+      </View>
 
+      <View className="px-5 ">
         <View className="mt-6 rounded-2xl bg-surface p-5">
           <Text className="text-sm text-textSecondary">Preço de venda</Text>
 
           <Text className="mt-1 text-2xl font-bold text-primary">
-            {product.preco.toFixed(2)} Kz
+            {formatCurrency(product.preco)}
           </Text>
 
           <Text className="mt-5 text-sm text-textSecondary">Estoque</Text>
@@ -91,8 +132,17 @@ export default function ProductDetailScreen() {
           onPress={() => router.push(`/private/produtcs/${product.id}/edit`)}
           className="mt-6 items-center rounded-2xl bg-primary py-4"
         >
-          -------------------------------------------
-          <Text className="font-bold text-white">Editar produto</Text>
+          <Text className="font-bold text-white">
+            {t("edit", lang)} {t("product", lang)}
+          </Text>
+        </Pressable>
+        <Pressable
+          onPress={handleDeleteProduct}
+          className="mt-4 items-center rounded-2xl bg-red-700 py-4"
+        >
+          <Text className="font-bold text-white">
+            {t("delete", lang)} {t("product", lang)}
+          </Text>
         </Pressable>
       </View>
     </SafeAreaView>

@@ -21,7 +21,6 @@ export async function seedDatabase(db: SQLiteDatabase) {
       '+244900000000'
     );
 
-
     -- =========================================
     -- CATEGORIAS
     -- =========================================

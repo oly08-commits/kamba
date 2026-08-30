@@ -2,6 +2,7 @@ import { t } from "@/shared/i18n";
 import { useLanguageStore } from "@/store/i18n.store";
 import colors from "@/theme/colos";
 import { Feather } from "@expo/vector-icons";
+import Constants from "expo-constants";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React from "react";
@@ -24,10 +25,10 @@ export default function SettingsScreen() {
         {/* Header */}
         <View className="bg-primary flex-row items-center gap-2">
           <Pressable onPress={() => router.back()}>
-            <Feather name="chevron-left" color={colors.white} size={25} />
+            <Feather name="chevron-left" color={colors.secondary} size={25} />
           </Pressable>
           <View className="pt-6 pb-8 pr-5">
-            <Text className="text-3xl font-bold text-white">
+            <Text className="text-3xl font-bold text-secondary">
               {t("settings", lang)}
             </Text>
 
@@ -100,7 +101,10 @@ export default function SettingsScreen() {
           </Text>
 
           <View className="overflow-hidden rounded-2xl border border-border bg-surface">
-            <Pressable className="flex-row items-center justify-between px-4 py-4 active:bg-green-50">
+            <Pressable
+              onPress={() => router.replace("/private/profile")}
+              className="flex-row items-center justify-between px-4 py-4 active:bg-green-50"
+            >
               <View className="flex-row items-center">
                 <View className="mr-4 h-10 w-10 items-center justify-center rounded-xl bg-green-50">
                   <Text className="text-lg">👤</Text>
@@ -171,7 +175,9 @@ export default function SettingsScreen() {
 
         {/* Version */}
         <View className="items-center pt-4  px-5">
-          <Text className="text-xs text-textMuted">{t("version", lang)}</Text>
+          <Text className="text-xs text-textMuted">
+            {t("version", lang)} {Constants.expoConfig?.version}
+          </Text>
         </View>
       </ScrollView>
     </SafeAreaView>

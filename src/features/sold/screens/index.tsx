@@ -117,10 +117,6 @@ export default function SoldScreen() {
         return;
       }
 
-      // ========================================
-      // SEM ESTOQUE
-      // ========================================
-
       if (product.estoque <= 0) {
         Alert.alert(
           lang === "pt" ? "Sem estoque" : "Out of stock",
@@ -143,10 +139,6 @@ export default function SoldScreen() {
 
         return;
       }
-
-      // ========================================
-      // ADICIONAR AO CARRINHO
-      // ========================================
 
       setProducts((current) => {
         const existing = current.find((item) => item.id === product.id);

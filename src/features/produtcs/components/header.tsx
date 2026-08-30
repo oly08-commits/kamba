@@ -18,16 +18,16 @@ export function Header({
   setSearch,
 }: Readonly<HeaderProps>) {
   return (
-    <View className="pr-5 pt-5">
+    <View className="pr-5 pt-5 pb-2 bg-primary">
       <View className="flex-row items-center justify-between">
         <Feather
           onPress={() => router.back()}
           name="chevron-left"
           size={30}
-          color={colors.primary}
+          color={colors.secondary}
         />
         <View className="flex-1">
-          <Text className="text-3xl font-bold text-primary">
+          <Text className="text-3xl font-bold text-secondary">
             {t("products", lang)}
           </Text>
 
@@ -39,9 +39,9 @@ export function Header({
 
         <Pressable
           onPress={() => router.push("/private/produtcs/create")}
-          className="h-12 w-12 items-center justify-center rounded-2xl bg-primary active:opacity-80"
+          className="h-12 w-12 items-center justify-center rounded-2xl bg-secondary active:opacity-80"
         >
-          <Feather name="plus" size={24} color="#F2F2F2" />
+          <Feather name="plus" size={24} color={colors.primary} />
         </Pressable>
       </View>
 

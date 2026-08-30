@@ -14,6 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Input } from "@/shared/components/input";
 import { useLanguageStore } from "@/store/i18n.store";
+import colors from "@/theme/colos";
 import { useSQLiteContext } from "expo-sqlite";
 import { StatusBar } from "expo-status-bar";
 import { BarcodeScannerModal } from "../components/BarcodeScannerModal";
@@ -102,16 +103,13 @@ export default function CreateProductScreen() {
         className="flex-1"
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <View className="flex-row items-center border-b border-border bg-surface px-5 py-4">
-          <Pressable
-            onPress={() => router.back()}
-            className="mr-4 h-10 w-10 items-center justify-center rounded-xl bg-green-50"
-          >
-            <Feather name="arrow-left" size={21} color="#063023" />
+        <View className="flex-row items-center border-b border-border bg-primary pr-5 py-4">
+          <Pressable onPress={() => router.back()} className="mr-2">
+            <Feather name="chevron-left" size={21} color={colors.secondary} />
           </Pressable>
 
           <View className="flex-1">
-            <Text className="text-xl font-bold text-primary">
+            <Text className="text-xl font-bold text-secondary">
               {isPortuguese ? "Novo produto" : "New product"}
             </Text>
 

@@ -2,7 +2,7 @@ import { SQLiteDatabase } from "expo-sqlite";
 import { CreateProductDTO, Product, UpdateProductDTO } from "../types/product";
 
 export class ProductRepository {
-  constructor(private db: SQLiteDatabase) {}
+  constructor(private readonly db: SQLiteDatabase) { }
 
   // CREATE
   async create(data: CreateProductDTO): Promise<number> {

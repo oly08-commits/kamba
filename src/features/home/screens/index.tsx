@@ -18,6 +18,8 @@ import { useSQLiteContext } from "expo-sqlite";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { UserRepository } from "@/features/profile/repositories/userrepositories";
+import { User } from "@/features/profile/types/user";
 import formatCurrency from "@/shared/format-currecy";
 import formatDate from "@/shared/formate-date";
 import { FastAcessItem } from "../components/falstAcess-item";
@@ -29,12 +31,15 @@ export function HomeScreen() {
   const db = useSQLiteContext();
 
   const dashboardRepository = new DashboardRepository(db);
+  const userRepository = new UserRepository(db);
 
   const [todaySalesTotal, setTodaySalesTotal] = useState(0);
 
   const [todaySalesCount, setTodaySalesCount] = useState(0);
 
   const [totalProducts, setTotalProducts] = useState(0);
+
+  const [userData, setUserData] = useState<User | null>(null);
 
   const [recentSales, setRecentSales] = useState<RecentSale[]>([]);
 
@@ -50,9 +55,10 @@ export function HomeScreen() {
     try {
       setLoading(true);
 
-      const [summary, sales] = await Promise.all([
+      const [summary, sales, user] = await Promise.all([
         dashboardRepository.getSummary(),
         dashboardRepository.getRecentSales(15),
+        userRepository.getFristUser(),
       ]);
 
       setTodaySalesTotal(summary.todaySalesTotal);
@@ -60,8 +66,7 @@ export function HomeScreen() {
       setTodaySalesCount(summary.todaySalesCount);
 
       setTotalProducts(summary.totalProducts);
-      console.log(summary);
-
+      setUserData(user);
       setRecentSales(sales);
     } catch (error) {
       console.error("Erro ao carregar dashboard:", error);
@@ -74,7 +79,7 @@ export function HomeScreen() {
     <View className="flex-1 bg-background">
       <StatusBar style="light" />
 
-      <HomeHeader />
+      <HomeHeader user={userData} />
 
       <SafeAreaView
         style={{ flex: 1, marginTop: -15 }}
@@ -130,15 +135,15 @@ export function HomeScreen() {
                 {/* VENDAS */}
 
                 <View className="flex-1 rounded-2xl bg-primary p-4">
-                  <Text className="text-sm text-white/70">
+                  <Text className="text-sm text-secondary/70">
                     {t("todaysSales", lang)}
                   </Text>
 
-                  <Text className="mt-2 text-2xl font-bold text-white">
+                  <Text className="mt-2 text-2xl font-bold text-secondary">
                     {formatCurrency(todaySalesTotal)}
                   </Text>
 
-                  <Text className="mt-1 text-xs text-white/60">
+                  <Text className="mt-1 text-xs text-secondary/60">
                     {todaySalesCount} {lang === "pt" ? "vendas" : "sales"}
                   </Text>
                 </View>
@@ -177,10 +182,9 @@ export function HomeScreen() {
               )}
             </View>
 
-            {loading && null}
             {!loading && recentSales.length === 0 && (
               <View className="items-center rounded-2xl border border-dashed border-border bg-surface px-5 py-8">
-                <Text className="text-3xl">🧾</Text>
+                <Text className="text-4xl">🧾</Text>
 
                 <Text className="mt-3 font-semibold text-text">
                   {t("noSalesYet", lang)}
