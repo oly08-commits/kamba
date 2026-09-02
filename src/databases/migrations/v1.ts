@@ -1,5 +1,5 @@
 import { SQLiteDatabase } from "expo-sqlite";
-import { seedDatabase } from "./seeds";
+import { seedDatabase } from "../seeds";
 
 export async function migrateV1(db: SQLiteDatabase) {
   await db.execAsync(`

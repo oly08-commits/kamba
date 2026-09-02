@@ -12,14 +12,7 @@ import colors from "@/theme/colos";
 import { Feather } from "@expo/vector-icons";
 import { ReceiptService } from "../repositories/receiptService";
 import { SaleRepository } from "../repositories/saleRepository";
-
-interface CartProduct {
-  id: number;
-  barcode: string | null;
-  name: string;
-  price: number;
-  quantity: number;
-}
+import { CartProduct } from "../types/sold";
 
 export default function SoldScreen() {
   const { lang } = useLanguageStore();
@@ -242,29 +235,27 @@ export default function SoldScreen() {
           valor: total,
         },
       });
+      const sale = {
+        saleId: result.saleId,
+        date: new Date().toLocaleString("pt-AO"),
 
-      await ReceiptService.print(
-        {
-          saleId: result.saleId,
-          date: new Date().toLocaleString("pt-AO"),
+        items: products.map((product) => ({
+          name: product.name,
+          quantity: product.quantity,
+          price: product.price,
+          subtotal: product.price * product.quantity,
+        })),
 
-          items: products.map((product) => ({
-            name: product.name,
-            quantity: product.quantity,
-            price: product.price,
-            subtotal: product.price * product.quantity,
-          })),
+        total,
 
-          total,
+        paymentMethod: "Dinheiro",
+        paidAmount: total,
+        change: 0,
+      };
 
-          paymentMethod: "Dinheiro",
-          paidAmount: total,
-          change: 0,
-        },
-        {
-          width: "80mm",
-        },
-      );
+      await ReceiptService.print(sale, {
+        width: "80mm",
+      });
 
       Alert.alert(
         lang === "pt" ? "Venda concluída" : "Sale completed",
