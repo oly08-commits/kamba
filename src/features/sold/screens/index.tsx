@@ -4,6 +4,7 @@ import { useSQLiteContext } from "expo-sqlite";
 import React, { useState } from "react";
 import { Alert, Pressable, Text, View } from "react-native";
 
+import { FaturaRepository } from "@/features/faturas/repository/faturaRepository";
 import { ProductRepository } from "@/features/produtcs/repositories/productRepository";
 import colors from "@/theme/colos";
 import { Feather } from "@expo/vector-icons";
@@ -21,6 +22,7 @@ export default function SoldScreen() {
 
   const productRepository = new ProductRepository(db);
   const saleRepository = new SaleRepository(db);
+  const faturaRepository = new FaturaRepository(db);
 
   const [permission] = useCameraPermissions();
 
@@ -235,6 +237,7 @@ export default function SoldScreen() {
           valor: total,
         },
       });
+
       const sale = {
         saleId: result.saleId,
         date: new Date().toLocaleString("pt-AO"),
@@ -252,6 +255,12 @@ export default function SoldScreen() {
         paidAmount: total,
         change: 0,
       };
+
+      await faturaRepository.create({
+        venda_id: sale.saleId,
+        numero: `00${sale.saleId}`,
+        fatura_json: sale,
+      });
 
       await ReceiptService.print(sale, {
         width: "80mm",
