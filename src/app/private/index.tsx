@@ -1,6 +1,3 @@
-import { HomeScreen } from "@/features/home/screens";
-import React from "react";
+import HomeScreen from "@/features/home/screens";
 
-export default function Page() {
-  return <HomeScreen />;
-}
+export default HomeScreen;

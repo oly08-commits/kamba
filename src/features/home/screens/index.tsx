@@ -23,7 +23,7 @@ import formatDate from "@/shared/formate-date";
 import { FastAcessItem } from "../components/falstAcess-item";
 import { HomeHeader } from "../components/header";
 
-export function HomeScreen() {
+export default function HomeScreen() {
   const { lang } = useLanguageStore();
 
   const db = useSQLiteContext();
@@ -166,7 +166,7 @@ export function HomeScreen() {
             </Text>
 
             {recentSales.length > 0 && (
-              <Pressable onPress={() => console.log("Todas as vendas")}>
+              <Pressable onPress={() => router.navigate("/private/vendas")}>
                 <Text className="text-sm font-semibold text-primary">
                   {t("viewAll", lang)}
                 </Text>
