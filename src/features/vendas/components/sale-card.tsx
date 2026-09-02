@@ -1,15 +1,24 @@
 import formatCurrency from "@/shared/format-currecy";
 import formatDate from "@/shared/formate-date";
 import { useLanguageStore } from "@/store/i18n.store";
-import { Text, View } from "react-native";
-import { RecentSale } from "../repositories/dashboardRepository";
+import { router } from "expo-router";
+import { Text, TouchableOpacity, View } from "react-native";
+import { RecentSale } from "../repositories/vendasRepository";
 interface Porops {
   sale: RecentSale;
 }
 export const SaleCard = ({ sale }: Porops) => {
   const lang = useLanguageStore((stt) => stt.lang);
+
+  function navigate() {
+    router.push(`/private/vendas/${sale.id}`);
+  }
+
   return (
-    <View className="flex-row items-center px-4 py-4">
+    <TouchableOpacity
+      onPress={navigate}
+      className="flex-row items-center px-4 py-4"
+    >
       {/* ÍCONE */}
 
       <View className="mr-3 h-11 w-11 items-center justify-center rounded-xl bg-green-50">
@@ -37,6 +46,6 @@ export const SaleCard = ({ sale }: Porops) => {
 
         <Text className="mt-1 text-xs text-textMuted">{sale.status}</Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };

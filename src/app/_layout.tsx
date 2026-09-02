@@ -6,28 +6,30 @@ import { SQLiteProvider } from "expo-sqlite";
 import { StatusBar } from "expo-status-bar";
 import { Suspense } from "react";
 import { Image, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import "./global.css";
 
 export default function RootLayout() {
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.primary }}>
-      <StatusBar style={"light"} />
-      <Suspense fallback={<SuspenseComponent />}>
-        <SQLiteProvider
-          databaseName="kambaDb.db"
-          onInit={InitDatabase}
-          useSuspense
-        >
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { backgroundColor: colors.background, flex: 1 },
-            }}
-          />
-        </SQLiteProvider>
-      </Suspense>
-    </SafeAreaView>
+    <SafeAreaProvider>
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.primary }}>
+        <StatusBar style={"light"} />
+        <Suspense fallback={<SuspenseComponent />}>
+          <SQLiteProvider
+            databaseName="kambaDb.db"
+            onInit={InitDatabase}
+            useSuspense
+          >
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: colors.background, flex: 1 },
+              }}
+            />
+          </SQLiteProvider>
+        </Suspense>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 

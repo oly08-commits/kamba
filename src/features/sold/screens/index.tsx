@@ -259,7 +259,7 @@ export default function SoldScreen() {
       await faturaRepository.create({
         venda_id: sale.saleId,
         numero: `00${sale.saleId}`,
-        fatura_json: sale,
+        fatura_json: JSON.stringify(sale),
       });
 
       await ReceiptService.print(sale, {

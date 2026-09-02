@@ -8,7 +8,7 @@ import { useSQLiteContext } from "expo-sqlite";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SaleCard } from "../components/sale-card";
-import { VendasRepository } from "../repositories/dashboardRepository";
+import { VendasRepository } from "../repositories/vendasRepository";
 
 export default function VendasScreen() {
   const db = useSQLiteContext();
@@ -35,6 +35,7 @@ export default function VendasScreen() {
       setLoading(false);
     }
   }
+
   return (
     <View className="flex-1 bg-background">
       <View className="bg-primary flex-row items-center gap-2">
