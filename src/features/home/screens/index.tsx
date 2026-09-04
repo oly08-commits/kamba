@@ -90,13 +90,13 @@ export default function HomeScreen() {
             <FastAcessItem
               icon="shopping-cart"
               label={t("newSale", lang)}
-              onPress={() => router.push("/private/sold")}
+              onPress={() => router.push("/(private)/sold")}
             />
 
             <FastAcessItem
               icon="package"
               label={t("products", lang)}
-              onPress={() => router.push("/private/produtcs")}
+              onPress={() => router.push("/(private)/produtcs")}
             />
 
             <FastAcessItem
@@ -166,7 +166,7 @@ export default function HomeScreen() {
             </Text>
 
             {recentSales.length > 0 && (
-              <Pressable onPress={() => router.navigate("/private/vendas")}>
+              <Pressable onPress={() => router.navigate("/(private)/vendas")}>
                 <Text className="text-sm font-semibold text-primary">
                   {t("viewAll", lang)}
                 </Text>

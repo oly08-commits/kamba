@@ -11,7 +11,7 @@ export const SaleCard = ({ sale }: Porops) => {
   const lang = useLanguageStore((stt) => stt.lang);
 
   function navigate() {
-    router.push(`/private/vendas/${sale.id}`);
+    router.push(`/(private)/vendas/${sale.id}`);
   }
 
   return (

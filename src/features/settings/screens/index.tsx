@@ -101,7 +101,7 @@ export default function SettingsScreen() {
 
           <View className="overflow-hidden rounded-2xl border border-border bg-surface">
             <Pressable
-              onPress={() => router.replace("/private/profile")}
+              onPress={() => router.replace("/(private)/profile")}
               className="flex-row items-center justify-between px-4 py-4 active:bg-green-50"
             >
               <View className="flex-row items-center">
